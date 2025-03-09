@@ -1,119 +1,135 @@
-# NFT Minting DApp
+# Script Minting NFT untuk Web3
 
-A modern Next.js application for minting NFTs on the Ethereum blockchain. This project demonstrates how to integrate a blockchain wallet (MetaMask) with a React frontend to interact with a smart contract.
+Script JavaScript sederhana untuk implementasi fungsionalitas minting NFT pada website menggunakan Next.js dan ethers.js. Kode ini dapat diintegrasikan ke dalam proyek web untuk menambahkan kemampuan minting NFT.
+![alt text](image-1.png)
 
-![NFT Minting DApp](https://github.com/your-username/nft-minting-dapp/raw/main/screenshot.png)
+## 📋 Deskripsi
 
-## 🚀 Features
+Script ini berisi komponen React untuk:
+- Menghubungkan website ke wallet MetaMask
+- Melakukan minting NFT melalui interaksi dengan smart contract
+- Mengelola error dan UI selama proses minting
 
-- Connect to MetaMask wallet
-- Mint NFTs directly from the UI
-- Error handling and gas estimation
-- Responsive design with Tailwind CSS
-- Modern UI with gradient effects and animations
+## 💻 Teknologi yang Digunakan
 
-## 📋 Prerequisites
+- **Next.js** - Framework React untuk pengembangan web
+- **ethers.js** - Library untuk berinteraksi dengan blockchain Ethereum
+- **Tailwind CSS** - Framework CSS untuk styling UI
 
-- Node.js 16+
-- MetaMask extension installed in your browser
-- Some ETH in your wallet for gas fees
+## 🔍 Cara Kerja Script
 
-## 🔧 Installation
+Script ini terdiri dari dua file utama:
 
-1. Clone this repository:
+### 1. `MintNFT.js`
+Komponen React utama yang menangani:
+- Koneksi wallet MetaMask
+- Interaksi dengan smart contract
+- Estimasi gas untuk transaksi
+- Eksekusi fungsi minting
+- Penanganan status dan error
 
-```bash
-git clone https://github.com/your-username/nft-minting-dapp.git
-cd nft-minting-dapp
+### 2. `page.js`
+File halaman Next.js yang mengimpor dan merender komponen `MintNFT`.
+
+## 🧩 Fungsi Utama
+
+```javascript
+// Koneksi ke wallet
+const connectWallet = async () => {
+  if (window.ethereum) {
+    try {
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      setWalletAddress(await signer.getAddress());
+    } catch (err) {
+      console.error("Wallet connection error:", err);
+      setError("Gagal connect wallet!");
+    }
+  } else {
+    setError("Install MetaMask dulu!");
+  }
+};
+
+// Minting NFT
+const mintNFT = async () => {
+  if (!walletAddress) return setError("Harap connect wallet dulu!");
+
+  try {
+    setLoading(true);
+    setError(""); // Reset error sebelum transaksi
+
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const contract = new ethers.Contract(contractAddress, abi, signer);
+
+    // Coba estimate gas dulu buat deteksi error sebelum transaksi
+    try {
+      await contract.mintReserve.estimateGas(
+        "0xa8863bf1c8933f649e7b03eb72109e5e187505ea",
+        1,
+        1
+      );
+    } catch (gasError) {
+      console.error("Estimate Gas Error:", gasError);
+      return setError("Estimasi gas gagal. Cek apakah wallet bisa mint NFT!");
+    }
+
+    // Jika berhasil estimate, lanjutkan transaksi
+    const tx = await contract.mintReserve(
+      "0xa8863bf1c8933f649e7b03eb72109e5e187505ea",
+      1,
+      1
+    );
+    await tx.wait();
+
+    alert("Mint berhasil!");
+  } catch (err) {
+    console.error("Minting error:", err);
+    setError(err.reason || err.message || "Mint gagal!");
+  } finally {
+    setLoading(false);
+  }
+};
 ```
 
-2. Install dependencies:
+## 🔧 Cara Menggunakan
 
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
+1. **Copy script** ke dalam proyek Next.js Anda:
+   - Letakkan `MintNFT.js` dalam folder `components/`
+   - Gunakan `page.js` di folder `app/` untuk merender komponen
+
+2. **Pasang dependensi yang diperlukan**:
+   ```bash
+   npm install ethers
+   # atau
+   yarn add ethers
+   ```
+
+3. **Sesuaikan detail smart contract**:
+   - Alamat kontrak (`contractAddress`)
+   - ABI kontrak (`abi`)
+   - Parameter untuk fungsi `mintReserve`
+
+4. **Import dan gunakan komponen** dalam halaman Anda
+
+## ⚠️ Catatan Penting
+
+- Script ini memerlukan instalasi MetaMask pada browser pengguna
+- Pengguna harus memiliki ETH untuk biaya gas
+- Script secara default terhubung ke mainnet Ethereum, sesuaikan provider jika ingin menggunakan testnet
+- Parameter fungsi `mintReserve` perlu disesuaikan dengan kontrak NFT target
+
+## 🌐 Contoh Penggunaan
+
+```javascript
+import MintNFT from "@/components/MintNFT";
+
+export default function NftPage() {
+  return (
+    <div className="container mx-auto py-10">
+      <h1 className="text-2xl font-bold mb-5">Minting NFT</h1>
+      <MintNFT />
+    </div>
+  );
+}
 ```
-
-3. Run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 💻 Smart Contract Integration
-
-This DApp integrates with an Ethereum smart contract at address `0x40ae3553a2dbbe463f84da97bda5607cfd03b40d`. The contract includes a `mintReserve` function that allows users to mint NFTs.
-
-The contract ABI used in this application:
-
-```json
-["function mintReserve(address creatorContractAddress, uint256 instanceId, uint32 mintCount) external"]
-```
-
-## 🔍 Code Structure
-
-- `components/MintNFT.js` - The main NFT minting component that handles wallet connection and minting
-- `app/page.js` - The main page that renders the MintNFT component
-- The dApp uses ethers.js for Ethereum interaction and Tailwind CSS for styling
-
-## 🧠 How It Works
-
-1. **Wallet Connection**:
-
-   - The app checks if MetaMask is installed
-   - On button click, it requests connection to the user's wallet
-   - Once connected, it displays the wallet address
-
-2. **NFT Minting**:
-
-   - The mint button is enabled after wallet connection
-   - Clicking mint initiates a transaction to the smart contract
-   - Gas estimation is performed first to validate the transaction
-   - Upon success, a confirmation message is displayed
-
-3. **Error Handling**:
-   - The app handles various errors including:
-     - MetaMask not installed
-     - Connection failures
-     - Gas estimation failures
-     - Transaction failures
-
-## 🎨 UI Features
-
-- Gradient backgrounds and buttons
-- Loading animations
-- Status indicators
-- Responsive design for mobile and desktop
-- Clear error and success messages
-
-## 🛠️ Customization
-
-To customize this dApp for your own contract:
-
-1. Update the `contractAddress` variable in `MintNFT.js`
-2. Modify the ABI according to your contract
-3. Update the parameters in the `mintReserve` function call
-
-## 📱 Mobile Responsiveness
-
-The UI is designed to work well on various screen sizes including mobile devices.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🙏 Acknowledgements
-
-- [Next.js](https://nextjs.org/)
-- [ethers.js](https://docs.ethers.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [MetaMask](https://metamask.io/)
