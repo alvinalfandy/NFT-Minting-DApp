@@ -1,6 +1,7 @@
 # Script Minting NFT untuk Web3
 
-Script JavaScript sederhana untuk implementasi fungsionalitas minting NFT pada website menggunakan Next.js dan ethers.js. Kode ini dapat diintegrasikan ke dalam proyek web untuk menambahkan kemampuan minting NFT.
+- Script JavaScript sederhana untuk implementasi fungsionalitas minting NFT pada website menggunakan Next.js dan ethers.js. Kode ini dapat diintegrasikan ke dalam proyek web untuk menambahkan kemampuan minting NFT.
+
 ![alt text](image-1.png)
 
 ## 📋 Deskripsi
